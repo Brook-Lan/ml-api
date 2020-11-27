@@ -24,7 +24,7 @@ async def start_event():
 
     # 实例化WordsChecker类(单例), 加载敏感词
     word_checker = WordChecker()
-    word_checker.load_keywords(SENSITIVE_WORDS_FILE)
+    word_checker.add_keywords_from_file(SENSITIVE_WORDS_FILE)
 
 
 app.include_router(
