@@ -1,6 +1,5 @@
-from flashtext import KeywordProcessor
-
-from util import singleton
+from utils.flashtext import KeywordProcessor
+from utils.decorators import singleton
 
 
 @singleton
