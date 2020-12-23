@@ -8,7 +8,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 
 from ml import ModelManager
 from projects.word_checking import WordChecker
-from config import MODEL_METAS, SENSITIVE_WORDS_FILE
+from projects.rule import Detector
+from config import MODEL_METAS, SENSITIVE_WORDS_FILE, RULES
 
 from .routers import mlmodel, check
 
@@ -21,6 +22,10 @@ async def start_event():
     """应用启动时的一些初始化"""
     # 加载机器学习模型
     ModelManager.load_models(MODEL_METAS)
+
+    # 初始化基于规则的检测器
+    detector = Detector()
+    detector.load(RULES)
 
     # 实例化WordsChecker类(单例), 加载敏感词
     word_checker = WordChecker()

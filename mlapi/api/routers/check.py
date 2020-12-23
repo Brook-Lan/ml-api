@@ -7,6 +7,7 @@ import traceback
 
 from ml import ModelManager
 from projects.word_checking import WordChecker
+from projects.rule import Detector
 from config import TAG_TO_INFO
 
 
@@ -30,8 +31,12 @@ async def hash_tag(args: Args):
     words_found = word_checker.check(txt)
 
     # 2.模型检测内容约定
+    # tags = []
     model = ModelManager.get_model("ShortMessageCheckModel")
     tags = model.predict(txt)
+
+    detector = Detector()
+    infos = detector.detect(txt)
     
     # 3. 整理返回结果
     data = []
@@ -41,6 +46,9 @@ async def hash_tag(args: Args):
     for tag in tags:
         info = TAG_TO_INFO.get(tag)
         if info is not None:
+            data.append(info)
+    for info in infos:
+        if info not in data:
             data.append(info)
     
     if len(data) > 0:
