@@ -42,7 +42,7 @@ class TextProcessor(TextProcessorABC):
     def process(self, text):
         text = url_pattern.sub("", text)
         words = self.tokenizer.cut(text.lower())
-        words = [w for w in words if w not in self.stop_words]
+        words = [w.strip() for w in words if w not in self.stop_words]
         return " ".join(words)
 
 
