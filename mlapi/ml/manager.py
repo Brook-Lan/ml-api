@@ -9,6 +9,11 @@ import warnings
 from .core.abc import MLModelABC
 from .core.exceptions import ModelNotFoundException
 from .core.loader import load_ml_model_from_meta
+from mylog import get_logger
+
+
+logger = get_logger()
+
 
 class ModelManager:
     """管理所有机器学习模型
@@ -35,7 +40,8 @@ class ModelManager:
             try:
                 model_obj = load_ml_model_from_meta(meta)
             except Exception as e:
-                warnings.warn("加载模型(%s)失败:%s"%(meta_model_name, e))
+                # warnings.warn("加载模型(%s)失败:%s"%(meta_model_name, e))
+                logger.error("加载模型(%s)失败:%s"%(meta_model_name, e))
                 continue
             if isinstance(model_obj, MLModelABC):
                 cls._models[meta_model_name] = {"obj": model_obj, "meta": meta._asdict()}

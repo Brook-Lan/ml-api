@@ -9,34 +9,59 @@ from ml import ModelManager
 from projects.word_checking import WordChecker
 from projects.rule import Detector
 from config import TAG_TO_INFO
+from mylog import get_logger
 
+logger = get_logger()
 
 router = APIRouter()
 
-class Args(BaseModel):
+class Text(BaseModel):
     text: str = Field(..., title="短信内容")
 
 
+class Args(BaseModel):
+    tradeTs: str = Field(..., max_length=17)
+    tradeId: str = Field(...)
+    data: Text = Field(...)
+
+
 class ResultItem(BaseModel):
-    status: int = Field(..., title="状态: 0 - 正常  1 - 有检测出信息")
+    status: int = Field(..., title="状态: 0 - 检测结果正常  1 - 有检测出不规范内容")
     message: str = Field(..., title="说明")
-    data: List[str] = Field(..., title="报错信息")
+    data: List[str] = Field([], title="报错信息")
 
 
 @router.post("/sms-check", response_model=ResultItem)
 async def hash_tag(args: Args):
-    txt = args.text
+    txt = args.data.text
+    if len(txt) == 0:
+        logger.warn("发送的短信内容为空")
+    else:
+        # logger.info("接收到参数:" + txt)
+        pass
+
     # 1.敏感词检测
-    word_checker = WordChecker()
-    words_found = word_checker.check(txt)
+    try:
+        word_checker = WordChecker()
+        words_found = word_checker.check(txt)
+    except Exception as e:
+        logger.error("敏感词检测失败：%s" % e)
+        words_found = []
 
     # 2.模型检测内容约定
-    # tags = []
-    model = ModelManager.get_model("ShortMessageCheckModel")
-    tags = model.predict(txt)
-
-    detector = Detector()
-    infos = detector.detect(txt)
+    try:
+        model = ModelManager.get_model("ShortMessageCheckModel")
+        tags = model.predict(txt)
+    except Exception as e:
+        logger.error("模型预测失败: %s" % e)
+        tags = []
+    
+    try:
+        detector = Detector()
+        infos = detector.detect(txt)
+    except Exception as e:
+        logger.error("规则引擎检测失败: %s" % e)
+        tags = []
     
     # 3. 整理返回结果
     data = []
@@ -57,4 +82,4 @@ async def hash_tag(args: Args):
     else:
         status = 0
         message = "未检测到异常"
-    return dict(status=status, message=message, data=data)
+    return ResultItem(status=status, message=message, data=data)
